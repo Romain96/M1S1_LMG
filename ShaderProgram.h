@@ -12,6 +12,7 @@ Description     : gère la création de shaderProgram, le chargement de shaders
 #ifndef __SHADERPROGRAM_H__
 #define __SHADERPROGRAM_H__
 
+#include <string>
 #include <GL/gl.h>
 
 class ShaderProgram
@@ -32,23 +33,31 @@ protected:
         bool hasTesselationControlShader;
         bool hasTesselationEvaluationShader;
         bool hasGeometryShader;
+        // code des shaders
+        char *vertexShaderCode;
+        char *fragmentShaderCode;
+        char *computeShaderCode;
+        char *tesselationControlShaderCode;
+        char *tesselationEvaluationShaderCode;
+        char *geometryShaderCode;
+private:
+        // méthode intermédiaire de test de la compilation d'un shader
+        bool __checkCompilationStatus(GLuint shader);
 public:
         // constructeur
         ShaderProgram();
         // retourne la shaderProgram
         GLuint getShaderProgram();
         // ajoute un shader (ou remplace le shader existant) depuis une chaine de caractères
-        void addShaderFromString(GLenum shaderType, char *shader);
+        void addShaderFromString(GLenum shaderType, char *shaderCode);
         // ajoute un shader (ou remplace la shader existant) depuis un fichier
-        void addShaderFromFile(GLenum shaderType, char *shader);
-        // supprime un shader (s'il existe)
-        void removeShader(GLenum shaderType);
+        void addShaderFromFile(GLenum shaderType, const std::string& shaderFile);
         // compile tous les shaders renseignés
         void compileShaders();
         // attache tous les shaders renseignés au shaderProgram
         void attachShaders();
         // link le shaderProgram
-        void linkShaders();
+        void linkProgram();
 };
 
 #endif
