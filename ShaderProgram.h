@@ -19,18 +19,18 @@ class ShaderProgram
 protected:
         GLuint shaderProgram;
         // shaders : valeurs de GL_SHADER_TYPE
-        GLuint vertexShader;            // GL_VERTEX_SHADER
-        GLuint fragmentShader;          // GL_FRAGMENT_SHADER
-        GLuint computeShader;           // GL_COMPUTE_SHADER
-        GLuint tesselationShader;       // GL_TESS_CONTROL_SHADER
-        GLuint tesselationEvalShader;   // GL_TESS_EVALUATION_SHADER
-        GLuint geometryShader;          // GL_GEOMETRY_SHADER
+        GLuint vertexShader;                    // GL_VERTEX_SHADER
+        GLuint fragmentShader;                  // GL_FRAGMENT_SHADER
+        GLuint computeShader;                   // GL_COMPUTE_SHADER
+        GLuint tesselationControlShader;        // GL_TESS_CONTROL_SHADER
+        GLuint tesselationEvaluationShader;     // GL_TESS_EVALUATION_SHADER
+        GLuint geometryShader;                  // GL_GEOMETRY_SHADER
         // booléens indiquant qu'un shader a été ajouté
         bool hasVertexShader;
         bool hasFragmentShader;
         bool hasComputeShader;
-        bool hasTesselationShader;
-        bool hasTesselationEvalShader;
+        bool hasTesselationControlShader;
+        bool hasTesselationEvaluationShader;
         bool hasGeometryShader;
 public:
         // constructeur
