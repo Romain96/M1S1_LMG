@@ -34,7 +34,6 @@ Commentaires    : instancie un ShaderProgram sans shader
 */
 ShaderProgram::ShaderProgram()
 {
-        this->shaderProgram = glCreateProgram();
         // pas de shader
         this->hasVertexShader = false;
         this->hasFragmentShader = false;
@@ -42,13 +41,13 @@ ShaderProgram::ShaderProgram()
         this->hasTesselationControlShader = false;
         this->hasTesselationEvaluationShader = false;
         this->hasGeometryShader = false;
-        // ni de code de shader
-        this->vertexShaderCode = nullptr;
-        this->fragmentShaderCode = nullptr;
-        this->computeShaderCode = nullptr;
-        this->tesselationControlShaderCode = nullptr;
-        this->tesselationEvaluationShaderCode = nullptr;
-        this->geometryShaderCode = nullptr;
+		// idem pour les identifiants de shaders
+		this->vertexShader = 0;
+		this->fragmentShader = 0;
+		this->computeShader = 0;
+		this->tesselationControlShader = 0;
+		this->hasTesselationEvaluationShader = 0;
+		this->geometryShader = 0;
 }
 
 /*
@@ -60,6 +59,17 @@ Commentaires    : /
 GLuint ShaderProgram::getShaderProgram()
 {
         return this->shaderProgram;
+}
+
+/*
+Fonction        : createShaderProgram
+Argument(s)     : /
+retour          : /
+Commentaires    : /
+*/
+void ShaderProgram::createShaderProgram()
+{
+	this->shaderProgram = glCreateProgram();
 }
 
 /*
@@ -75,43 +85,37 @@ void ShaderProgram::addShaderFromString(GLenum shaderType, const char *shaderCod
         {
                 case GL_VERTEX_SHADER :
 						this->vertexShader = glCreateShader(GL_VERTEX_SHADER);
-						this->vertexShaderCode = shaderCode;
-						glShaderSource(this->vertexShader, 1, &this->vertexShaderCode, nullptr);
+						glShaderSource(this->vertexShader, 1, &shaderCode, nullptr);
 						this->hasVertexShader = true;
 						break;
 
                 case GL_FRAGMENT_SHADER :
                         this->fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-                        this->fragmentShaderCode = shaderCode;
-                        glShaderSource(this->fragmentShader, 1, &this->vertexShaderCode, nullptr);
+                        glShaderSource(this->fragmentShader, 1, &shaderCode, nullptr);
                         this->hasFragmentShader = true;
                         break;
 
                 case GL_TESS_CONTROL_SHADER :
                         this->hasTesselationControlShader = glCreateShader(GL_TESS_CONTROL_SHADER);
-                        this->tesselationControlShaderCode = shaderCode;
-                        glShaderSource(this->tesselationControlShader, 1, &this->vertexShaderCode, nullptr);
+                        glShaderSource(this->tesselationControlShader, 1, &shaderCode, nullptr);
                         this->hasTesselationControlShader = true;
                         break;
 
                 case GL_TESS_EVALUATION_SHADER :
                         this->tesselationEvaluationShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
-                        this->tesselationEvaluationShaderCode = shaderCode;
-                        glShaderSource(this->tesselationEvaluationShader, 1, &this->vertexShaderCode, nullptr);
+                        glShaderSource(this->tesselationEvaluationShader, 1, &shaderCode, nullptr);
                         this->hasTesselationEvaluationShader = true;
                         break;
 
                 case GL_GEOMETRY_SHADER :
                         this->geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
-                        this->geometryShaderCode = shaderCode;
-                        glShaderSource(this->geometryShader, 1, &this->vertexShaderCode, nullptr);
+                        glShaderSource(this->geometryShader, 1, &shaderCode, nullptr);
                         this->hasGeometryShader = true;
                         break;
 
                 case GL_COMPUTE_SHADER :
                         this->computeShader = glCreateShader(GL_COMPUTE_SHADER);
-                        this->computeShaderCode = shaderCode;
-                        glShaderSource(this->computeShader, 1, &this->vertexShaderCode, nullptr);
+                        glShaderSource(this->computeShader, 1, &shaderCode, nullptr);
                         this->hasComputeShader = true;
                         break;
 
