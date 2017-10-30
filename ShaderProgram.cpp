@@ -11,7 +11,19 @@ Description     : gère la création de shaderProgram, le chargement de shaders
 
 #include <cstdlib>
 #include <cstdio>
+#include <string>
+#include <iostream>
+#include <fstream>
+// Graphics
+// - GLEW (always before "gl.h")
+#include <GL/glew.h>
+// - GL
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <GL/gl.h>
+// - GLUT
+#include <GL/glut.h>
 #include "ShaderProgram.h"
 
 /*
@@ -35,7 +47,7 @@ ShaderProgram::ShaderProgram()
         this->fragmentShaderCode = nullptr;
         this->computeShaderCode = nullptr;
         this->tesselationControlShaderCode = nullptr;
-        this->tesselationEvaluationShader = nullptr;
+        this->tesselationEvaluationShaderCode = nullptr;
         this->geometryShaderCode = nullptr;
 }
 
@@ -56,50 +68,50 @@ Argument(s)     : un type de shader (GLenum) et une chaine de caractères (code 
 retour          : /
 Commentaires    : crée et ajoute le shader
 */
-void ShaderProgram::addShaderFromString(GLenum shaderType, char *shaderCode)
+void ShaderProgram::addShaderFromString(GLenum shaderType, const char *shaderCode)
 {
         // doc : GL_COMPUTE_SHADER, GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER.
         switch (shaderType)
         {
                 case GL_VERTEX_SHADER :
-                        this->vertexShader = glCreateShader(GL_VERTEX_SHADER);
-                        this->vertexShaderCode = shaderCode;
-                        glShaderSource(this->vertexShader, 1, this->vertexShaderCode, nullptr);
-                        this->hasVertexShader = true;
-                        break;
+						this->vertexShader = glCreateShader(GL_VERTEX_SHADER);
+						this->vertexShaderCode = shaderCode;
+						glShaderSource(this->vertexShader, 1, &this->vertexShaderCode, nullptr);
+						this->hasVertexShader = true;
+						break;
 
                 case GL_FRAGMENT_SHADER :
                         this->fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
                         this->fragmentShaderCode = shaderCode;
-                        glShaderSource(this->fragmentShader, 1, this->fragmentShaderCode, nullptr);
+                        glShaderSource(this->fragmentShader, 1, &this->vertexShaderCode, nullptr);
                         this->hasFragmentShader = true;
                         break;
 
                 case GL_TESS_CONTROL_SHADER :
-                        this-> = glCreateShader(GL_TESS_CONTROL_SHADER);
+                        this->hasTesselationControlShader = glCreateShader(GL_TESS_CONTROL_SHADER);
                         this->tesselationControlShaderCode = shaderCode;
-                        glShaderSource(this->tesselationControlShader, 1, this->tesselationControlShaderCode, nullptr);
+                        glShaderSource(this->tesselationControlShader, 1, &this->vertexShaderCode, nullptr);
                         this->hasTesselationControlShader = true;
                         break;
 
                 case GL_TESS_EVALUATION_SHADER :
-                        this-> = glCreateShader(GL_TESS_EVALUATION_SHADER);
+                        this->tesselationEvaluationShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
                         this->tesselationEvaluationShaderCode = shaderCode;
-                        glShaderSource(this->tesselationEvaluationShader, 1, this->tesselationEvaluationShaderCode, nullptr);
+                        glShaderSource(this->tesselationEvaluationShader, 1, &this->vertexShaderCode, nullptr);
                         this->hasTesselationEvaluationShader = true;
                         break;
 
                 case GL_GEOMETRY_SHADER :
-                        this-> = glCreateShader(GL_GEOMETRY_SHADER);
+                        this->geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
                         this->geometryShaderCode = shaderCode;
-                        glShaderSource(this->geometryShader, 1, this->geometryShaderCode, nullptr);
+                        glShaderSource(this->geometryShader, 1, &this->vertexShaderCode, nullptr);
                         this->hasGeometryShader = true;
                         break;
 
                 case GL_COMPUTE_SHADER :
-                        this-> = glCreateShader(GL_COMPUTE_SHADER);
+                        this->computeShader = glCreateShader(GL_COMPUTE_SHADER);
                         this->computeShaderCode = shaderCode;
-                        glShaderSource(this->computeShader, 1, this->computeShaderCode, nullptr);
+                        glShaderSource(this->computeShader, 1, &this->vertexShaderCode, nullptr);
                         this->hasComputeShader = true;
                         break;
 
@@ -125,10 +137,10 @@ void ShaderProgram::addShaderFromFile(GLenum shaderType, const std::string& shad
         {
                 // initialiser une chaine de caractères pour contenir le contenu du fichier
                 file.seekg(0, std::ios::end);
-                shader.resize(file.tellg());
+				shaderCode.resize(file.tellg());
                 file.seekg(0, std::ios::beg);
                 // lecture du fichier
-                file.read(shaderCode[0], shaderCode.size());
+                file.read(&shaderCode[0], shaderCode.size());
                 // fermeture du fichier
                 file.close();
         }
@@ -273,7 +285,7 @@ void ShaderProgram::linkProgram()
         glLinkProgram(this->shaderProgram);
         // vérifie les erreurs de linkage
         GLint linkStatus;
-        glGetProgramiv(this->shaderProgram, GL_LINK_STATUS, &compileStatus);
+        glGetProgramiv(this->shaderProgram, GL_LINK_STATUS, &linkStatus);
         // s'il y a des erreurs
         if (linkStatus == GL_FALSE)
         {
@@ -290,7 +302,7 @@ void ShaderProgram::linkProgram()
                         std::cout << infoLog << std::endl;
                 }
                 // si erreur -> arrêt
-                fprintf("linkProgram : error while linking the shaderProgram !\n");
+                fprintf(stderr, "linkProgram : error while linking the shaderProgram !\n");
                 exit(1);
         }
         // sinon OK

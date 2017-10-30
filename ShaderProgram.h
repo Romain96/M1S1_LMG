@@ -34,12 +34,12 @@ protected:
         bool hasTesselationEvaluationShader;
         bool hasGeometryShader;
         // code des shaders
-        char *vertexShaderCode;
-        char *fragmentShaderCode;
-        char *computeShaderCode;
-        char *tesselationControlShaderCode;
-        char *tesselationEvaluationShaderCode;
-        char *geometryShaderCode;
+        const char *vertexShaderCode;
+        const char *fragmentShaderCode;
+        const char *computeShaderCode;
+        const char *tesselationControlShaderCode;
+        const char *tesselationEvaluationShaderCode;
+        const char *geometryShaderCode;
 private:
         // méthode intermédiaire de test de la compilation d'un shader
         bool __checkCompilationStatus(GLuint shader);
@@ -49,7 +49,7 @@ public:
         // retourne la shaderProgram
         GLuint getShaderProgram();
         // ajoute un shader (ou remplace le shader existant) depuis une chaine de caractères
-        void addShaderFromString(GLenum shaderType, char *shaderCode);
+        void addShaderFromString(GLenum shaderType, const char *shaderCode);
         // ajoute un shader (ou remplace la shader existant) depuis un fichier
         void addShaderFromFile(GLenum shaderType, const std::string& shaderFile);
         // compile tous les shaders renseignés
