@@ -1,0 +1,42 @@
+#ifndef __MESH_H__
+#define __MESH_H__
+
+/*
+================================================================================
+Classe          : Mesh
+Auteur(s)       : Romain PERRIN
+Date :          : 2017-10-31
+Description     : structure permettant de stocker un maillage et son apparence
+================================================================================
+*/
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+#include <GL/gl.h>
+#include <vector>
+
+class Mesh
+{
+protected:
+	// un VAO qui sert à référencer et encapsuler une liste de buffers génériques VBO
+	GLuint _vertexArray;
+	// VBO contenant les positions
+	GLuint _positionBuffer;
+	// VBO contenant les normales
+	GLuint _normalBuffer;
+	// VBO contenant les index
+	GLuint _indexBuffer;
+	// TODO ajouter les textures (TP5)
+public:
+	// constructeur
+	Mesh();
+	// ajouter un buffer de positions
+	void addPositionBuffer(const std::vector<float>& positionBuffer);
+	// ajouter un buffer de normales
+	void addNormalBuffer(const std::vector<float>& normalBuffer);
+	// ajouter un buffer d'index
+	void addIndexBuffer(const std::vector<float>& indexBuffer);
+};
+
+#endif 
