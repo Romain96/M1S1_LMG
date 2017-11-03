@@ -1,38 +1,41 @@
+#ifndef __SHADERPROGRAM_H__
+#define __SHADERPROGRAM_H__
+
 /*
 ================================================================================
 Classe          : ShaderProgram
 Auteur(s)       : Romain PERRIN
 Date :          : 2017-10-29
 Description     : gère la création de shaderProgram, le chargement de shaders
-                 depuis un fichier ou depuis une chaine de caractères, l'ajout
-                 des shaders au shaderProgram, le linkage et la compilation
+depuis un fichier ou depuis une chaine de caractères, l'ajout
+des shaders au shaderProgram, le linkage et la compilation
 ================================================================================
 */
 
-#ifndef __SHADERPROGRAM_H__
-#define __SHADERPROGRAM_H__
-
 #include <string>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <GL/gl.h>
 
 class ShaderProgram
 {
 protected:
-        GLuint shaderProgram;
+        GLuint _shaderProgram;
         // shaders : valeurs de GL_SHADER_TYPE
-        GLuint vertexShader;                    // GL_VERTEX_SHADER
-        GLuint fragmentShader;                  // GL_FRAGMENT_SHADER
-        GLuint computeShader;                   // GL_COMPUTE_SHADER
-        GLuint tesselationControlShader;        // GL_TESS_CONTROL_SHADER
-        GLuint tesselationEvaluationShader;     // GL_TESS_EVALUATION_SHADER
-        GLuint geometryShader;                  // GL_GEOMETRY_SHADER
+        GLuint _vertexShader;                    // GL_VERTEX_SHADER
+        GLuint _fragmentShader;                  // GL_FRAGMENT_SHADER
+        GLuint _computeShader;                   // GL_COMPUTE_SHADER
+        GLuint _tesselationControlShader;        // GL_TESS_CONTROL_SHADER
+        GLuint _tesselationEvaluationShader;     // GL_TESS_EVALUATION_SHADER
+        GLuint _geometryShader;                  // GL_GEOMETRY_SHADER
         // booléens indiquant qu'un shader a été ajouté
-        bool hasVertexShader;
-        bool hasFragmentShader;
-        bool hasComputeShader;
-        bool hasTesselationControlShader;
-        bool hasTesselationEvaluationShader;
-        bool hasGeometryShader;
+        bool _hasVertexShader;
+        bool _hasFragmentShader;
+        bool _hasComputeShader;
+        bool _hasTesselationControlShader;
+        bool _hasTesselationEvaluationShader;
+        bool _hasGeometryShader;
 private:
         // méthode intermédiaire de test de la compilation d'un shader
         bool __checkCompilationStatus(GLuint shader);

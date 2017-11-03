@@ -35,19 +35,19 @@ Commentaires    : instancie un ShaderProgram sans shader
 ShaderProgram::ShaderProgram()
 {
         // pas de shader
-        this->hasVertexShader = false;
-        this->hasFragmentShader = false;
-        this->hasComputeShader = false;
-        this->hasTesselationControlShader = false;
-        this->hasTesselationEvaluationShader = false;
-        this->hasGeometryShader = false;
-		// idem pour les identifiants de shaders
-		this->vertexShader = 0;
-		this->fragmentShader = 0;
-		this->computeShader = 0;
-		this->tesselationControlShader = 0;
-		this->hasTesselationEvaluationShader = 0;
-		this->geometryShader = 0;
+        this->_hasVertexShader = false;
+        this->_hasFragmentShader = false;
+        this->_hasComputeShader = false;
+        this->_hasTesselationControlShader = false;
+        this->_hasTesselationEvaluationShader = false;
+        this->_hasGeometryShader = false;
+	// idem pour les identifiants de shaders
+	this->_vertexShader = 0;
+	this->_fragmentShader = 0;
+	this->_computeShader = 0;
+	this->_tesselationControlShader = 0;
+	this->_hasTesselationEvaluationShader = 0;
+	this->_geometryShader = 0;
 }
 
 /*
@@ -58,7 +58,7 @@ Commentaires    : /
 */
 GLuint ShaderProgram::getShaderProgram()
 {
-        return this->shaderProgram;
+        return this->_shaderProgram;
 }
 
 /*
@@ -69,7 +69,7 @@ Commentaires    : /
 */
 void ShaderProgram::createShaderProgram()
 {
-	this->shaderProgram = glCreateProgram();
+	this->_shaderProgram = glCreateProgram();
 }
 
 /*
@@ -84,39 +84,39 @@ void ShaderProgram::addShaderFromString(GLenum shaderType, const char *shaderCod
         switch (shaderType)
         {
                 case GL_VERTEX_SHADER :
-						this->vertexShader = glCreateShader(GL_VERTEX_SHADER);
-						glShaderSource(this->vertexShader, 1, &shaderCode, nullptr);
-						this->hasVertexShader = true;
-						break;
+			this->_vertexShader = glCreateShader(GL_VERTEX_SHADER);
+			glShaderSource(this->_vertexShader, 1, &shaderCode, nullptr);
+			this->_hasVertexShader = true;
+			break;
 
                 case GL_FRAGMENT_SHADER :
-                        this->fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-                        glShaderSource(this->fragmentShader, 1, &shaderCode, nullptr);
-                        this->hasFragmentShader = true;
+                        this->_fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+                        glShaderSource(this->_fragmentShader, 1, &shaderCode, nullptr);
+                        this->_hasFragmentShader = true;
                         break;
 
                 case GL_TESS_CONTROL_SHADER :
-                        this->hasTesselationControlShader = glCreateShader(GL_TESS_CONTROL_SHADER);
-                        glShaderSource(this->tesselationControlShader, 1, &shaderCode, nullptr);
-                        this->hasTesselationControlShader = true;
+                        this->_hasTesselationControlShader = glCreateShader(GL_TESS_CONTROL_SHADER);
+                        glShaderSource(this->_tesselationControlShader, 1, &shaderCode, nullptr);
+                        this->_hasTesselationControlShader = true;
                         break;
 
                 case GL_TESS_EVALUATION_SHADER :
-                        this->tesselationEvaluationShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
-                        glShaderSource(this->tesselationEvaluationShader, 1, &shaderCode, nullptr);
-                        this->hasTesselationEvaluationShader = true;
+                        this->_tesselationEvaluationShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
+                        glShaderSource(this->_tesselationEvaluationShader, 1, &shaderCode, nullptr);
+                        this->_hasTesselationEvaluationShader = true;
                         break;
 
                 case GL_GEOMETRY_SHADER :
-                        this->geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
-                        glShaderSource(this->geometryShader, 1, &shaderCode, nullptr);
-                        this->hasGeometryShader = true;
+                        this->_geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+                        glShaderSource(this->_geometryShader, 1, &shaderCode, nullptr);
+                        this->_hasGeometryShader = true;
                         break;
 
                 case GL_COMPUTE_SHADER :
-                        this->computeShader = glCreateShader(GL_COMPUTE_SHADER);
-                        glShaderSource(this->computeShader, 1, &shaderCode, nullptr);
-                        this->hasComputeShader = true;
+                        this->_computeShader = glCreateShader(GL_COMPUTE_SHADER);
+                        glShaderSource(this->_computeShader, 1, &shaderCode, nullptr);
+                        this->_hasComputeShader = true;
                         break;
 
                 default :
@@ -141,7 +141,7 @@ void ShaderProgram::addShaderFromFile(GLenum shaderType, const std::string& shad
         {
                 // initialiser une chaine de caractères pour contenir le contenu du fichier
                 file.seekg(0, std::ios::end);
-				shaderCode.resize(file.tellg());
+		shaderCode.resize(file.tellg());
                 file.seekg(0, std::ios::beg);
                 // lecture du fichier
                 file.read(&shaderCode[0], shaderCode.size());
@@ -203,35 +203,35 @@ void ShaderProgram::compileShaders()
         bool compileGeometryShader = true;
         bool compileComputeShader = true;
 
-        if (this->hasVertexShader)
+        if (this->_hasVertexShader)
         {
-                glCompileShader(this->vertexShader);
-                compileVertexShader = __checkCompilationStatus(this->vertexShader);
+                glCompileShader(this->_vertexShader);
+                compileVertexShader = __checkCompilationStatus(this->_vertexShader);
         }
-        if (this->hasFragmentShader)
+        if (this->_hasFragmentShader)
         {
-                glCompileShader(this->fragmentShader);
-                compileFragmentShader = __checkCompilationStatus(this->fragmentShader);
+                glCompileShader(this->_fragmentShader);
+                compileFragmentShader = __checkCompilationStatus(this->_fragmentShader);
         }
-        if (this->hasTesselationControlShader)
+        if (this->_hasTesselationControlShader)
         {
-                glCompileShader(this->tesselationControlShader);
-                compileTesselationControlShader = __checkCompilationStatus(this->tesselationControlShader);
+                glCompileShader(this->_tesselationControlShader);
+                compileTesselationControlShader = __checkCompilationStatus(this->_tesselationControlShader);
         }
-        if (this->hasTesselationEvaluationShader)
+        if (this->_hasTesselationEvaluationShader)
         {
-                glCompileShader(this->tesselationEvaluationShader);
-                compileTesselationEvaluationShader = __checkCompilationStatus(this->tesselationEvaluationShader);
+                glCompileShader(this->_tesselationEvaluationShader);
+                compileTesselationEvaluationShader = __checkCompilationStatus(this->_tesselationEvaluationShader);
         }
-        if (this->hasGeometryShader)
+        if (this->_hasGeometryShader)
         {
-                glCompileShader(this->geometryShader);
-                compileGeometryShader = __checkCompilationStatus(this->geometryShader);
+                glCompileShader(this->_geometryShader);
+                compileGeometryShader = __checkCompilationStatus(this->_geometryShader);
         }
-        if (this->hasComputeShader)
+        if (this->_hasComputeShader)
         {
-                glCompileShader(this->computeShader);
-                compileComputeShader = __checkCompilationStatus(this->computeShader);
+                glCompileShader(this->_computeShader);
+                compileComputeShader = __checkCompilationStatus(this->_computeShader);
         }
 
         // si erreur(s) de compilation -> arrêt
@@ -251,29 +251,29 @@ Commentaires    : attache tous les shaders renseignés au shaderProgram
 */
 void ShaderProgram::attachShaders()
 {
-        if (this->hasVertexShader)
+        if (this->_hasVertexShader)
         {
-                glAttachShader(this->shaderProgram, this->vertexShader);
+                glAttachShader(this->_shaderProgram, this->_vertexShader);
         }
-        if (this->hasFragmentShader)
+        if (this->_hasFragmentShader)
         {
-                glAttachShader(this->shaderProgram, this->fragmentShader);
+                glAttachShader(this->_shaderProgram, this->_fragmentShader);
         }
-        if (this->hasTesselationControlShader)
+        if (this->_hasTesselationControlShader)
         {
-                glAttachShader(this->shaderProgram, this->tesselationControlShader);
+                glAttachShader(this->_shaderProgram, this->_tesselationControlShader);
         }
-        if (this->hasTesselationEvaluationShader)
+        if (this->_hasTesselationEvaluationShader)
         {
-                glAttachShader(this->shaderProgram, this->tesselationEvaluationShader);
+                glAttachShader(this->_shaderProgram, this->_tesselationEvaluationShader);
         }
-        if (this->hasGeometryShader)
+        if (this->_hasGeometryShader)
         {
-                glAttachShader(this->shaderProgram, this->geometryShader);
+                glAttachShader(this->_shaderProgram, this->_geometryShader);
         }
-        if (this->hasComputeShader)
+        if (this->_hasComputeShader)
         {
-                glAttachShader(this->shaderProgram, this->computeShader);
+                glAttachShader(this->_shaderProgram, this->_computeShader);
         }
 }
 
@@ -286,22 +286,22 @@ Commentaires    : link le shader program et recherche les erreurs de linkage
 void ShaderProgram::linkProgram()
 {
         // link le shaderProgram
-        glLinkProgram(this->shaderProgram);
+        glLinkProgram(this->_shaderProgram);
         // vérifie les erreurs de linkage
         GLint linkStatus;
-        glGetProgramiv(this->shaderProgram, GL_LINK_STATUS, &linkStatus);
+        glGetProgramiv(this->_shaderProgram, GL_LINK_STATUS, &linkStatus);
         // s'il y a des erreurs
         if (linkStatus == GL_FALSE)
         {
                 GLint logInfoLength = 0;
-                glGetProgramiv(this->shaderProgram, GL_INFO_LOG_LENGTH, &logInfoLength);
+                glGetProgramiv(this->_shaderProgram, GL_INFO_LOG_LENGTH, &logInfoLength);
                 // si le log est non vide
                 if (logInfoLength > 0)
                 {
                         // affichage des erreurs de compilation
                         GLchar *infoLog = new GLchar[logInfoLength];
                         GLsizei length = 0;
-                        glGetProgramInfoLog(this->shaderProgram, logInfoLength, &length, infoLog);
+                        glGetProgramInfoLog(this->_shaderProgram, logInfoLength, &length, infoLog);
                         // affichage du log
                         std::cout << infoLog << std::endl;
                 }
