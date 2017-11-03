@@ -15,10 +15,13 @@ Description     : structure permettant de stocker un maillage et son apparence
 #endif
 #include <GL/gl.h>
 #include <vector>
+#include <vector>
 
 class Mesh
 {
 protected:
+	// le nom du Mesh
+	std::string name;
 	// un VAO qui sert à référencer et encapsuler une liste de buffers génériques VBO
 	GLuint _vertexArray;
 	// VBO contenant les positions
@@ -27,10 +30,11 @@ protected:
 	GLuint _normalBuffer;
 	// VBO contenant les index
 	GLuint _indexBuffer;
-	// TODO ajouter les textures (TP5)
+	// VBO contenant les textures
+	GLuint _textureBuffer;
 public:
 	// constructeur
-	Mesh();
+	Mesh(std::string name);
 	// ajouter un buffer de positions
 	void addPositionBuffer(const std::vector<float>& positionBuffer);
 	// ajouter un buffer de normales
