@@ -34,9 +34,9 @@ public:
 	// constructeur
 	Camera();
 	// définition d'une view matrix
-	void defineViewMatrix(glm::vec3& eye, glm::vec3& center, glm::vec3& up);
+	void setViewMatrix(glm::vec3& eye, glm::vec3& center, glm::vec3& up);
 	// définition d'une projection matrix
-	void defineProjectionMatrix(float fovY, float aspect, float zNear, float zFar);
+	void setProjectionMatrix(float fovY, float aspect, float zNear, float zFar);
 	// retourne la view matrix
 	glm::mat4 getViewMatrix();
 	// retourne la projection matrix

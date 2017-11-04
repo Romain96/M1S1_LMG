@@ -36,11 +36,11 @@ public:
 	// constructeur
 	Mesh(std::string name);
 	// ajouter un buffer de positions
-	void addPositionBuffer(const std::vector<float>& positionBuffer);
+	void setPositionBuffer(const std::vector<float>& positionBuffer);
 	// ajouter un buffer de normales
-	void addNormalBuffer(const std::vector<float>& normalBuffer);
+	void setNormalBuffer(const std::vector<float>& normalBuffer);
 	// ajouter un buffer d'index
-	void addIndexBuffer(const std::vector<float>& indexBuffer);
+	void setIndexBuffer(const std::vector<float>& indexBuffer);
 };
 
 #endif 

@@ -39,7 +39,7 @@ Argument(s)     : un vec3 contenant la nouvelle position de la source de lumière
 retour          : /
 Commentaires    : /
 */
-void Light::addLightPosition(glm::vec3& lightPosition)
+void Light::setLightPosition(glm::vec3& lightPosition)
 {
 	this->_lightPosition = lightPosition;
 }
@@ -50,7 +50,7 @@ Argument(s)     : un vec3 contenant la nouvelle couleur de la source de lumière
 retour          : /
 Commentaires    : /
 */
-void Light::addLightColor(glm::vec3& lightColor)
+void Light::setLightColor(glm::vec3& lightColor)
 {
 	this->_lightColor = lightColor;
 }

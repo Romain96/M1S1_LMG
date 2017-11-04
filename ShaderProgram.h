@@ -44,8 +44,8 @@ public:
         ShaderProgram();
         // retourne la shaderProgram
         GLuint getShaderProgram();
-		// crée le shaderProgram
-		void createShaderProgram();
+	// crée le shaderProgram
+	void createShaderProgram();
         // ajoute un shader (ou remplace le shader existant) depuis une chaine de caractères
         void addShaderFromString(GLenum shaderType, const char *shaderCode);
         // ajoute un shader (ou remplace la shader existant) depuis un fichier

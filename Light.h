@@ -28,9 +28,9 @@ public:
 	// constructeur avec paramètres
 	Light(glm::vec3& lightPosition, glm::vec3& lightColor);
 	// ajoute ou remplace la position de la source de lumière
-	void addLightPosition(glm::vec3& lightPosition);
+	void setLightPosition(glm::vec3& lightPosition);
 	// ajoute ou remplace la couleur de la source de lumière
-	void addLightColor(glm::vec3& lightColor);
+	void setLightColor(glm::vec3& lightColor);
 	// retourne la position de la source de lumière
 	glm::vec3 getLightPosition();
 	// retourne la couleur de la source de lumière
