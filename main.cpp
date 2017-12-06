@@ -1,37 +1,20 @@
-﻿#define NDEBUG
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
-//////////////////////////////////////////////////////////////////////////////
-// INCLUDES
-//////////////////////////////////////////////////////////////////////////////
-
-#include <iostream>
-#include <vector>
-#include <fstream>
-#include <cstdio>
-#include <GL/glew.h>
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glut.h>
-#include <GL/freeglut.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <SOIL.h>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Shader.h"
 #include "Camera.h"
 #include "Model.h"
 
-////////////////////////////////////////////////////////////////////////////
-// DEFINITIONS
-////////////////////////////////////////////////////////////////////////////
+#include <iostream>
 
-void display();
-void reshape(int width, int height);
-void mouse_callback(int button, int state, int x, int y);
-void scroll_callback(int button, int dir, int x, int y);
-void processInput(unsigned char key, int x, int y);
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void processInput(GLFWwindow *window);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -47,145 +30,157 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-// autre
-Shader *ourShader;
-Model *ourModel;
-
-////////////////////////////////////////////////////////////////////////////
-// MAIN
-////////////////////////////////////////////////////////////////////////////
-int main(int argc, char** argv)
+int main()
 {
-	// initialisation de la librairie GLUT
-	glutInit(&argc, argv);
+	// glfw: initialize and configure
+	// ------------------------------
+	glfwInit();
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-	glutInitWindowSize(SCR_WIDTH, SCR_HEIGHT);
-	glutInitWindowPosition(50, 50);
-	glutCreateWindow("Model Loader");
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
+#endif
 
-	// Initialisation de la librairie GLEW
-	GLenum error = glewInit();
-	if (error != GLEW_OK)
+							     // glfw window creation
+							     // --------------------
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+	if (window == NULL)
 	{
-		fprintf(stderr, "Error: %s\n", glewGetErrorString(error));
-		exit(-1);
+		std::cout << "Failed to create GLFW window" << std::endl;
+		glfwTerminate();
+		return -1;
+	}
+	glfwMakeContextCurrent(window);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+
+	// tell GLFW to capture our mouse
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	// glad: load all OpenGL function pointers
+	// ---------------------------------------
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "Failed to initialize GLAD" << std::endl;
+		return -1;
 	}
 
 	// configure global opengl state
+	// -----------------------------
 	glEnable(GL_DEPTH_TEST);
 
 	// build and compile shaders
-	ourShader = new Shader("model_loading.vs", "model_loading.fs");
+	// -------------------------
+	Shader ourShader("model_loading.vs", "model_loading.fs");
 
 	// load models
-	ourModel = new Model("nanosuit/nanosuit.obj");
+	// -----------
+	Model ourModel("nanosuit/nanosuit.obj");
+	//Model ourModel("table/alexruano_Wormhole_Table_OBJ.obj");
 
-	// fonctions de callback
-	glutDisplayFunc(display);
-	glutReshapeFunc(reshape);
-	glutKeyboardFunc(processInput);
-	glutMouseFunc(mouse_callback);
-	glutMouseWheelFunc(scroll_callback);
+	// draw in wireframe
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	// boucle principale
-	glutMainLoop();
+	// render loop
+	// -----------
+	while (!glfwWindowShouldClose(window))
+	{
+		// per-frame time logic
+		// --------------------
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 
+		// input
+		// -----
+		processInput(window);
+
+		// render
+		// ------
+		glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// don't forget to enable shader before setting uniforms
+		ourShader.use();
+
+		// view/projection transformations
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		glm::mat4 view = camera.GetViewMatrix();
+		ourShader.setMat4("projection", projection);
+		ourShader.setMat4("view", view);
+
+		// render the loaded model
+		glm::mat4 model;
+		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
+		ourShader.setMat4("model", model);
+		ourModel.Draw(ourShader);
+
+
+		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+		// -------------------------------------------------------------------------------
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+
+	// glfw: terminate, clearing all previously allocated GLFW resources.
+	// ------------------------------------------------------------------
+	glfwTerminate();
 	return 0;
 }
 
-////////////////////////////////////////////////////////////////////////////
-// DISPLAY LOOP
-////////////////////////////////////////////////////////////////////////////
-void display()
+// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+// ---------------------------------------------------------------------------------------------------------
+void processInput(GLFWwindow *window)
 {
-	// per-frame time logic
-	// --------------------
-	float currentFrame = glutGet(GLUT_ELAPSED_TIME);
-	deltaTime = currentFrame - lastFrame;
-	lastFrame = currentFrame;
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
 
-	// render
-	// ------
-	glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// don't forget to enable shader before setting uniforms
-	ourShader->use();
-
-	// view/projection transformations
-	glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-	glm::mat4 view = camera.GetViewMatrix();
-	ourShader->setMat4("projection", projection);
-	ourShader->setMat4("view", view);
-
-	// render the loaded model
-	glm::mat4 model;
-	model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-	model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
-	ourShader->setMat4("model", model);
-	ourModel->Draw(*ourShader);
-
-	glutSwapBuffers();
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		camera.ProcessKeyboard(FORWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camera.ProcessKeyboard(LEFT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
-////////////////////////////////////////////////////////////////////////////
-// KEYBOARD KEY PRESSED EVENT
-////////////////////////////////////////////////////////////////////////////
-void processInput(unsigned char key, int x, int y)
-{
-	switch (key)
-	{
-	case GLUT_KEY_UP:
-		camera.ProcessKeyboard(FORWARD, deltaTime);
-		break;
-	case GLUT_KEY_DOWN:
-		camera.ProcessKeyboard(FORWARD, deltaTime);
-		break;
-	case GLUT_KEY_LEFT:
-		camera.ProcessKeyboard(FORWARD, deltaTime);
-		break;
-	case GLUT_KEY_RIGHT:
-		camera.ProcessKeyboard(FORWARD, deltaTime);
-		break;
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////
-// MOUSE EVENT
-////////////////////////////////////////////////////////////////////////////
-void mouse_callback(int button, int state, int x, int y)
-{
-	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
-	{
-		lastX = x;
-		lastY = y;
-	}
-
-	float xoffset = x - lastX;
-	float yoffset = lastY - y; // reversed since y-coordinates go from bottom to top
-
-	lastX = x;
-	lastY = y;
-
-	camera.ProcessMouseMovement(xoffset, yoffset, false);
-}
-
-////////////////////////////////////////////////////////////////////////////
-// MOUSE WHEEL EVENT
-////////////////////////////////////////////////////////////////////////////
-void scroll_callback(int button, int dir, int x, int y)
-{
-	camera.ProcessMouseScroll(dir);
-	return;
-}
-
-////////////////////////////////////////////////////////////////////////////
-// MOUSE WHEEL EVENT
-////////////////////////////////////////////////////////////////////////////
-void reshape(int width, int height)
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+// ---------------------------------------------------------------------------------------------
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	// make sure the viewport matches the new window dimensions; note that width and 
 	// height will be significantly larger than specified on retina displays.
 	glViewport(0, 0, width, height);
+}
+
+// glfw: whenever the mouse moves, this callback is called
+// -------------------------------------------------------
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+// glfw: whenever the mouse scroll wheel scrolls, this callback is called
+// ----------------------------------------------------------------------
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	camera.ProcessMouseScroll(yoffset);
 }

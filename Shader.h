@@ -1,20 +1,13 @@
-#ifndef __SHADER_H__
-#define __SHADER_H__
+#ifndef SHADER_H
+#define SHADER_H
 
+#include <glad/glad.h>
+#include <glm/glm.hpp>
 
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <GL/glew.h>
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <GL/gl.h>
-#include <GL/glut.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 class Shader
 {

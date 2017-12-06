@@ -1,12 +1,21 @@
-#ifndef __MESH_H__
-#define __MESH_H__
+#ifndef MESH_H
+#define MESH_H
 
-#include <vector>
-#include <string>
-#include "Shader.h"
+#include <glad/glad.h> // holds all OpenGL type declarations
+
+#include <assimp/Importer.hpp>
+
 #include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "Shader.h"
+
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <vector>
+using namespace std;
 
 struct Vertex {
 	// position
@@ -23,21 +32,21 @@ struct Vertex {
 
 struct Texture {
 	unsigned int id;
-	std::string type;
-	std::string path;
+	string type;
+	aiString path;
 };
 
 class Mesh {
 public:
 	/*  Mesh Data  */
-	std::vector<Vertex> vertices;
-	std::vector<unsigned int> indices;
-	std::vector<Texture> textures;
+	vector<Vertex> vertices;
+	vector<unsigned int> indices;
+	vector<Texture> textures;
 	unsigned int VAO;
 
 	/*  Functions  */
 	// constructor
-	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
+	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
 	{
 		this->vertices = vertices;
 		this->indices = indices;
@@ -59,8 +68,8 @@ public:
 		{
 			glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
 							  // retrieve texture number (the N in diffuse_textureN)
-			std::string number;
-			std::string name = textures[i].type;
+			string number;
+			string name = textures[i].type;
 			if (name == "texture_diffuse")
 				number = std::to_string(diffuseNr++);
 			else if (name == "texture_specular")
@@ -129,4 +138,4 @@ private:
 		glBindVertexArray(0);
 	}
 };
-#endif
+#endif#pragma once
