@@ -1,0 +1,4 @@
+# ignoring MSVC Debug repository 
+Debug/.
+# ignoring MSVC .vs repository
+.vs 
