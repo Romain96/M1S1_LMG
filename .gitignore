@@ -1,0 +1,5 @@
+# ignoring MSCG Debug folder
+Debug/*
+
+# ignoring MSCV .vs folder
+.vs/*
