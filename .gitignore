@@ -4,6 +4,6 @@ Debug/
 # ignoring MSCV .vs folder
 .vs/
 
-# ignoring MSVC .VS folder
-*.VS
-*.vs
+# ignoring MSVC misc files
+*.VS.db
+*.VS.VS.opendb
