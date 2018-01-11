@@ -37,6 +37,8 @@
     <None Include="lighting_maps.vs" />
     <None Include="model_loading.fs" />
     <None Include="model_loading.vs" />
+    <None Include="multiple_lights.fs" />
+    <None Include="multiple_lights.vs" />
     <None Include="skybox.fs" />
     <None Include="skybox.vs" />
   </ItemGroup>

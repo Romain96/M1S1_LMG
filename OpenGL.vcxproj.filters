@@ -47,5 +47,7 @@
     <None Include="lighting_maps.vs" />
     <None Include="lighting_maps.fs" />
     <None Include="lamp.fs" />
+    <None Include="multiple_lights.vs" />
+    <None Include="multiple_lights.fs" />
   </ItemGroup>
 </Project>
