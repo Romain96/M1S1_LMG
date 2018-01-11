@@ -20,13 +20,22 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c" />
+    <ClCompile Include="imgui.cpp" />
+    <ClCompile Include="imgui_demo.cpp" />
+    <ClCompile Include="imgui_draw.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="imconfig.h" />
+    <ClInclude Include="imgui.h" />
+    <ClInclude Include="imgui_internal.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="stb_truetype.h" />
+    <ClInclude Include="stb_rect_pack.h" />
+    <ClInclude Include="stb_textedit.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cubemap.fs" />
@@ -41,6 +50,8 @@
     <None Include="multiple_lights.vs" />
     <None Include="skybox.fs" />
     <None Include="skybox.vs" />
+    <None Include="texture.fs" />
+    <None Include="texture.vs" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4B1ADBEE-48F9-40D2-887E-7D130EAD602F}</ProjectGuid>

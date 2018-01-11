@@ -1,6 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <GL/GL.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -8,6 +10,8 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Model.h"
+
+#include "imgui.h"
 
 #include <SOIL.h>
 
@@ -19,6 +23,10 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 unsigned int loadTexture(const char *path);
 unsigned int loadCubemap(vector<std::string> faces);
+
+// imgui
+void setup(GLFWwindow* window);
+void renderer(ImDrawData* draw_data);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -36,11 +44,12 @@ float lastFrame = 0.0f;
 
 // lighting
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-//glm::vec3 lightPos(0.0f, 0.0f, 2.0f);
 
 // global parameters (can be toogled by the user)
 // only with keyboard for now...
+bool show_wireframe = false;
 bool show_skybox = true;
+bool show_flashlight = true;
 
 int main()
 {
@@ -90,6 +99,8 @@ int main()
 	Shader modelLoadingShader("model_loading.vs", "model_loading.fs");
 	// shader user to render the wooden box
 	Shader shader("cubemap.vs", "cubemap.fs");
+	// shader user to apply textures to surfaces
+	Shader textureShader("texture.vs", "texture.fs");
 	// shader used to render the skybox
 	Shader skyboxShader("skybox.vs", "skybox.fs");
 	// shader use to apply light reflections to object (Phong)
@@ -192,10 +203,24 @@ int main()
 
 	// positions of the point lights
 	glm::vec3 pointLightPositions[] = {
-		glm::vec3(0.7f,  0.2f,  2.0f),
-		glm::vec3(2.3f, -3.3f, -4.0f),
-		glm::vec3(-4.0f,  2.0f, -12.0f),
-		glm::vec3(0.0f,  0.0f, -3.0f)
+		glm::vec3(-1.0f,  2.0f,  0.0f),
+		glm::vec3(-1.0f, 2.0f, -1.0f),
+		glm::vec3(1.0f,  2.0f, 0.0f),
+		glm::vec3(1.0f,  2.0f, -1.0f)
+	};
+
+	//
+	glm::vec3 boxPositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
 	// cube VAO & VBO (with specular & diffuse maps)
@@ -238,17 +263,26 @@ int main()
 	// -------------
 	unsigned int diffuseMap = loadTexture("resources/textures/container2.png");
 	unsigned int specularMap = loadTexture("resources/textures/container2_specular.png");
+	//unsigned int terrainTexture = loadTexture("resources/textures/ground.jpg");
 
 	vector<std::string> faces
 	{
 		/*
-		// One I found but low res :(
+		// Ely Hills
 		"resources/textures/skybox/ely_hills/right.tga",
 		"resources/textures/skybox/ely_hills/left.tga",
 		"resources/textures/skybox/ely_hills/top.tga",
 		"resources/textures/skybox/ely_hills/bottom.tga",
 		"resources/textures/skybox/ely_hills/back.tga",
 		"resources/textures/skybox/ely_hills/front.tga
+		*/
+		/*
+		"resources/textures/skybox/ame_siege/right.tga",
+		"resources/textures/skybox/ame_siege/left.tga",
+		"resources/textures/skybox/ame_siege/top.tga",
+		"resources/textures/skybox/ame_siege/bottom.tga",
+		"resources/textures/skybox/ame_siege/back.tga",
+		"resources/textures/skybox/ame_siege/front.tga"
 		*/
 		// LearnOpenGl example skybox : HD sky
 		"resources/textures/skybox/learnopengl/right.jpg",
@@ -257,9 +291,6 @@ int main()
 		"resources/textures/skybox/learnopengl/bottom.jpg",
 		"resources/textures/skybox/learnopengl/back.jpg",
 		"resources/textures/skybox/learnopengl/front.jpg"
-		
-
-
 	};
 	unsigned int cubemapTexture = loadCubemap(faces);
 
@@ -277,9 +308,6 @@ int main()
 	// -----------
 	Model nanosuit("resources/models/nanosuit/nanosuit.obj");
 
-	// draw in wireframe
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
@@ -289,6 +317,12 @@ int main()
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+
+		// draw in wireframe only if show_wireframe is true
+		if (show_wireframe)
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		else
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		// input
 		// -----
@@ -313,7 +347,6 @@ int main()
 		// be sure to activate shader when setting uniforms/drawing objects
 		lightingShader.use();
 		lightingShader.setVec3("light.position", lightPos);
-		lightingShader.setVec3("viewPos", camera.Position);
 		lightingShader.setVec3("viewPos", camera.Position);
 		lightingShader.setFloat("material.shininess", 32.0f);
 
@@ -354,21 +387,39 @@ int main()
 		lightingShader.setFloat("pointLights[3].constant", 1.0f);
 		lightingShader.setFloat("pointLights[3].linear", 0.09);
 		lightingShader.setFloat("pointLights[3].quadratic", 0.032);
-		// spotLight
-		lightingShader.setVec3("spotLight.position", camera.Position);
-		lightingShader.setVec3("spotLight.direction", camera.Front);
-		lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-		lightingShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-		lightingShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-		lightingShader.setFloat("spotLight.constant", 1.0f);
-		lightingShader.setFloat("spotLight.linear", 0.09);
-		lightingShader.setFloat("spotLight.quadratic", 0.032);
-		lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-		lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+		// spotLight (if not disabled by the user)
+		if (show_flashlight)
+		{
+			lightingShader.setVec3("spotLight.position", camera.Position);
+			lightingShader.setVec3("spotLight.direction", camera.Front);
+			lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+			lightingShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+			lightingShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+			lightingShader.setFloat("spotLight.constant", 1.0f);
+			lightingShader.setFloat("spotLight.linear", 0.09);
+			lightingShader.setFloat("spotLight.quadratic", 0.032);
+			lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+			lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+		}
+		else
+		{
+			lightingShader.setVec3("spotLight.position", camera.Position);
+			lightingShader.setVec3("spotLight.direction", camera.Front);
+			lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+			lightingShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+			lightingShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+			lightingShader.setFloat("spotLight.constant", 1.0f);
+			lightingShader.setFloat("spotLight.linear", 0.09);
+			lightingShader.setFloat("spotLight.quadratic", 0.032);
+			lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+			lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+		}
 
 		// view/projection transformations
 		projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		view = camera.GetViewMatrix();
+		model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f)); // translate it down so it's at the center of the scene
+		lightingShader.setMat4("model", model);
 		lightingShader.setMat4("projection", projection);
 		lightingShader.setMat4("view", view);
 
@@ -382,9 +433,17 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specularMap);
 
-		// render the cube
+		// render containers
 		glBindVertexArray(cubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		for (unsigned int i = 0; i < 10; i++)
+		{
+			// calculate the model matrix for each object and pass it to shader before drawing
+			glm::mat4 model;
+			model = glm::translate(model, boxPositions[i]);
+			lightingShader.setMat4("model", model);
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 		/// also draw the lamp object(s)
 		lampShader.use();
@@ -471,10 +530,15 @@ void processInput(GLFWwindow *window)
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 
+	// key 'W' toogle display in wireframe
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		show_wireframe = !show_wireframe;
 	// key 'S' toogles the skybox
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		show_skybox = !show_skybox;
-
+	// key 'F' toogles the flashlight (which illuminates a circular area int the direction the cursor is pointing towards)
+	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+		show_flashlight = !show_flashlight;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -591,4 +655,124 @@ unsigned int loadCubemap(vector<std::string> faces)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	return textureID;
+}
+
+// imgui
+/*! /brief Initialise the ImGuiIO struct.
+*
+*   The ImGuiIO struct is the main configuration and
+*   I/O between your application and ImGui.
+*/
+void setup(GLFWwindow* window)
+{
+	unsigned char* pixels;
+	int width,
+		height,
+		display_width,
+		display_height;
+	GLuint g_FontTexture;
+
+	ImGuiIO& io{ ImGui::GetIO() };
+
+	io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
+
+	// Upload texture to graphics system
+	GLint last_texture;
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
+	glGenTextures(1, &g_FontTexture);
+	glBindTexture(GL_TEXTURE_2D, g_FontTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, width, height, 0, GL_ALPHA, GL_UNSIGNED_BYTE, pixels);
+
+	// Get display size
+	glfwGetWindowSize(window, &width, &height);
+	glfwGetFramebufferSize(window, &display_width, &display_height);
+
+	io.DisplaySize = ImVec2((float)width, (float)height);
+	io.RenderDrawListsFn = renderer;
+	io.Fonts->TexID = (void *)(intptr_t)g_FontTexture;
+
+	// Restore state
+	glBindTexture(GL_TEXTURE_2D, last_texture);
+}
+
+/*! /brief Boilerplate function for OpenGL 2.0 rendering.
+*
+*  This function isn't written by us, but is mandatory
+*  boilerplate from the library. It can be copy/pasted
+*  into your projects, but should really be part of the
+*  library itself?
+*/
+void renderer(ImDrawData* draw_data)
+{
+	ImGuiIO& io{ ImGui::GetIO() };
+	int fb_width{ (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x) };
+	int fb_height{ (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y) };
+
+	draw_data->ScaleClipRects(io.DisplayFramebufferScale);
+
+	GLint last_texture; glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
+	GLint last_viewport[4]; glGetIntegerv(GL_VIEWPORT, last_viewport);
+	glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_TRANSFORM_BIT);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_SCISSOR_TEST);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+	glEnable(GL_TEXTURE_2D);
+
+	// Setup viewport, orthographic projection matrix
+	glViewport(0, 0, (GLsizei)fb_width, (GLsizei)fb_height);
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0.0f, io.DisplaySize.x, io.DisplaySize.y, 0.0f, -1.0f, +1.0f);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	// Render command lists
+#define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
+	for (int n = 0; n < draw_data->CmdListsCount; n++)
+	{
+		const ImDrawList* cmd_list = draw_data->CmdLists[n];
+		const unsigned char* vtx_buffer = (const unsigned char*)&cmd_list->VtxBuffer.front();
+		const ImDrawIdx* idx_buffer = &cmd_list->IdxBuffer.front();
+		glVertexPointer(2, GL_FLOAT, sizeof(ImDrawVert), (void*)(vtx_buffer + OFFSETOF(ImDrawVert, pos)));
+		glTexCoordPointer(2, GL_FLOAT, sizeof(ImDrawVert), (void*)(vtx_buffer + OFFSETOF(ImDrawVert, uv)));
+		glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(ImDrawVert), (void*)(vtx_buffer + OFFSETOF(ImDrawVert, col)));
+
+		for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.size(); cmd_i++)
+		{
+			const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
+			if (pcmd->UserCallback)
+			{
+				pcmd->UserCallback(cmd_list, pcmd);
+			}
+			else
+			{
+				glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
+				glScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
+				glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer);
+			}
+			idx_buffer += pcmd->ElemCount;
+		}
+	}
+#undef OFFSETOF
+
+	// Restore modified state
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glBindTexture(GL_TEXTURE_2D, last_texture);
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glPopAttrib();
+	glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
 }
