@@ -98,7 +98,6 @@ int main()
 	// shader used to render the skybox
 	Shader skyboxShader("skybox.vs", "skybox.fs");
 	// shader use to apply light reflections to object (Phong)
-	//Shader lightingShader("lighting_maps.vs", "lighting_maps.fs");
 	Shader lightingShader("multiple_lights.vs", "multiple_lights.fs");
 	// shader used for light points
 	Shader lampShader("lamp.vs", "lamp.fs");
@@ -203,29 +202,53 @@ int main()
 		glm::vec3(1.0f,  2.0f, -1.0f)
 	};
 
-	//
+	// positions of each boxes
 	glm::vec3 boxPositions[] = {
-		glm::vec3(0.0f,  0.0f,  0.0f),
-		glm::vec3(2.0f,  5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f),
-		glm::vec3(-3.8f, -2.0f, -12.3f),
-		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f,  3.0f, -7.5f),
-		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f,  2.0f, -2.5f),
-		glm::vec3(1.5f,  0.2f, -1.5f),
-		glm::vec3(-1.3f,  1.0f, -1.5f)
+		glm::vec3(-1.0f, 0.0f, -2.0f),
+		glm::vec3(-1.0f, 0.0f, -1.0f),
+		glm::vec3(-1.0f, 0.0f,  0.0f),
+		glm::vec3(-1.0f, 0.0f,  1.0f),
+		glm::vec3(-1.0f, 0.0f,  2.0f),
+		glm::vec3(1.0f,  0.0f, -2.0f),
+		glm::vec3(1.0f,  0.0f, -1.0f),
+		glm::vec3(1.0f,  0.0f,  0.0f),
+		glm::vec3(1.0f,  0.0f,  1.0f),
+		glm::vec3(1.0f,  0.0f,  2.0f)
 	};
 
-	// cube VAO & VBO (with specular & diffuse maps)
-	unsigned int VBO, cubeVAO;
-	glGenVertexArrays(1, &cubeVAO);
-	glGenBuffers(1, &VBO);
+	// positions of each walls
+	glm::vec3 wallPositions[] = {
+		glm::vec3(-1.0f, 0.0f, -1.0f),
+		glm::vec3(-1.0f, 0.0f,  1.0f),
+		glm::vec3(1.0f, 0.0f,   1.0f),
+		glm::vec3(1.0f, 0.0f,  -1.0f)
+	};
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// box VAO & VBO (with specular & diffuse maps)
+	unsigned int boxVBO, boxVAO;
+	glGenVertexArrays(1, &boxVAO);
+	glGenBuffers(1, &boxVBO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, boxVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
 
-	glBindVertexArray(cubeVAO);
+	glBindVertexArray(boxVAO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+
+	// wall VAO & VBO (with specular & diffuse maps)
+	unsigned int wallVBO, wallVAO;
+	glGenVertexArrays(1, &wallVAO);
+	glGenBuffers(1, &wallVBO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, wallVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+
+	glBindVertexArray(wallVAO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -238,7 +261,7 @@ int main()
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, boxVBO);
 	// note that we update the lamp's position attribute's stride to reflect the updated buffer data
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -257,7 +280,7 @@ int main()
 	// -------------
 	unsigned int diffuseMap = loadTexture("resources/textures/container2.png");
 	unsigned int specularMap = loadTexture("resources/textures/container2_specular.png");
-	//unsigned int terrainTexture = loadTexture("resources/textures/ground.jpg");
+	unsigned int brickTexture = loadTexture("resources/textures/brick.jpg");
 
 	vector<std::string> faces
 	{
@@ -268,7 +291,7 @@ int main()
 		"resources/textures/skybox/ely_hills/top.tga",
 		"resources/textures/skybox/ely_hills/bottom.tga",
 		"resources/textures/skybox/ely_hills/back.tga",
-		"resources/textures/skybox/ely_hills/front.tga
+		"resources/textures/skybox/ely_hills/front.tga"
 		*/
 		/*
 		"resources/textures/skybox/ame_siege/right.tga",
@@ -427,8 +450,9 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specularMap);
 
-		// render containers
-		glBindVertexArray(cubeVAO);
+		// render containers : boxes
+		//--------------------------
+		glBindVertexArray(boxVAO);
 		for (unsigned int i = 0; i < 10; i++)
 		{
 			// calculate the model matrix for each object and pass it to shader before drawing
@@ -439,7 +463,43 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
+		// world transformation
+		lightingShader.setMat4("model", glm::mat4());
+
+		// bind wall texture
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, brickTexture);
+
+		// render container : walls
+		//-------------------------
+		glBindVertexArray(wallVAO);
+
+		// wall 1 (back)
+		// calculate the model matrix for each object and pass it to shader before drawing
+		model = glm::scale(glm::translate(glm::mat4(1.0f), wallPositions[0]), glm::vec3(5.0f, 4.0f, 0.25f));
+		model = glm::translate(model, glm::vec3(0.25f, 0.25f, -10.0f));
+		lightingShader.setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		// wall 2 (back)
+		// calculate the model matrix for each object and pass it to shader before drawing
+		model = glm::mat4(1.0f);
+		model = glm::scale(model, glm::vec3(0.25f, 4.0f, 10.0f));
+		model = glm::translate(model, glm::vec3(10.5f, 0.25f, 0.15f));
+		lightingShader.setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		// wall 3 (right)
+		// calculate the model matrix for each object and pass it to shader before drawing
+		//model = glm::translate(glm::mat4(1.0f), wallPositions[2]);
+		//lightingShader.setMat4("model", model);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		// wall 4 (TODO)
+
+
 		/// also draw the lamp object(s)
+		//------------------------------
 		lampShader.use();
 		lampShader.setMat4("projection", projection);
 		lampShader.setMat4("view", view);
@@ -455,7 +515,8 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
-		// model
+		// rendering model
+		//----------------
 		modelLoadingShader.use();
 
 		// view/projection transformations
@@ -472,6 +533,7 @@ int main()
 
 		// draw skybox as last
 		// only if show_skybox is true
+		//----------------------------
 		if (show_skybox)
 		{
 			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
@@ -496,7 +558,7 @@ int main()
 
 	// optional: de-allocate all resources once they've outlived their purpose:
 	// ------------------------------------------------------------------------
-	glDeleteVertexArrays(1, &cubeVAO);
+	glDeleteVertexArrays(1, &boxVAO);
 	glDeleteVertexArrays(1, &skyboxVAO);
 	glDeleteBuffers(1, &skyboxVAO);
 
