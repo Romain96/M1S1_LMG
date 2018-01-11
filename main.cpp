@@ -37,7 +37,7 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 // lighting
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+glm::vec3 lightPos(-0.5f, 1.0f, 2.0f);
 
 // global parameters (can be toogled by the user)
 // only with keyboard for now...
@@ -196,10 +196,10 @@ int main()
 
 	// positions of the point lights
 	glm::vec3 pointLightPositions[] = {
-		glm::vec3(-1.0f,  2.0f,  0.0f),
-		glm::vec3(-1.0f, 2.0f, -1.0f),
-		glm::vec3(1.0f,  2.0f, 0.0f),
-		glm::vec3(1.0f,  2.0f, -1.0f)
+		glm::vec3(-2.25f, 2.75f,  2.0f),
+		glm::vec3(-2.25f, 2.75f, -1.0f),
+		glm::vec3(2.25f,  2.75f, -1.0f),
+		glm::vec3(2.25f,  2.75f, 2.0f)
 	};
 
 	// positions of each boxes
@@ -446,8 +446,9 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, specularMap);
 
-		// render containers : boxes
-		//--------------------------
+		//--------------------------------------------------------------------------------------------------------
+		// render containers : wooden-metallic boxes
+		//--------------------------------------------------------------------------------------------------------
 		glBindVertexArray(boxVAO);
 		for (unsigned int i = 0; i < 10; i++)
 		{
@@ -466,8 +467,9 @@ int main()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, brickTexture);
 
-		// render containers : walls
-		//-------------------------
+		//--------------------------------------------------------------------------------------------------------
+		// render containers : brick walls
+		//--------------------------------------------------------------------------------------------------------
 		glBindVertexArray(wallVAO);
 
 		// wall 1 (back)
@@ -520,8 +522,9 @@ int main()
 		lightingShader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		/// also draw the lamp object(s)
-		//------------------------------
+		//--------------------------------------------------------------------------------------------------------
+		// also draw the lamp object(s)
+		//--------------------------------------------------------------------------------------------------------
 		lampShader.use();
 		lampShader.setMat4("projection", projection);
 		lampShader.setMat4("view", view);
@@ -537,8 +540,9 @@ int main()
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
+		//--------------------------------------------------------------------------------------------------------
 		// rendering model
-		//----------------
+		//--------------------------------------------------------------------------------------------------------
 		modelLoadingShader.use();
 
 		// view/projection transformations
@@ -548,17 +552,16 @@ int main()
 		modelLoadingShader.setMat4("view", view);
 
 		// render the loaded model
-		//model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-		//model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));	// it's a bit too big for our scene, so scale it down
 		model = glm::mat4(1.0f);
 		model = glm::scale(model, glm::vec3(0.20f, 0.20f, 0.20f));
 		model = glm::translate(model, glm::vec3(0.0f, -4.0f, -10.0f));
 		modelLoadingShader.setMat4("model", model);
 		nanosuit.Draw(modelLoadingShader);
 
+		//--------------------------------------------------------------------------------------------------------
 		// draw skybox as last
 		// only if show_skybox is true
-		//----------------------------
+		//--------------------------------------------------------------------------------------------------------
 		if (show_skybox)
 		{
 			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
