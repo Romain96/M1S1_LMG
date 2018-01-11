@@ -216,14 +216,6 @@ int main()
 		glm::vec3(1.0f,  0.0f,  2.0f)
 	};
 
-	// positions of each walls
-	glm::vec3 wallPositions[] = {
-		glm::vec3(-1.0f, 0.0f, -1.0f),
-		glm::vec3(-1.0f, 0.0f,  1.0f),
-		glm::vec3(1.0f, 0.0f,   1.0f),
-		glm::vec3(1.0f, 0.0f,  -1.0f)
-	};
-
 	// box VAO & VBO (with specular & diffuse maps)
 	unsigned int boxVBO, boxVAO;
 	glGenVertexArrays(1, &boxVAO);
@@ -278,9 +270,13 @@ int main()
 
 	// load textures
 	// -------------
+	// diffuse & specular maps for the wooden-metalic box
 	unsigned int diffuseMap = loadTexture("resources/textures/container2.png");
 	unsigned int specularMap = loadTexture("resources/textures/container2_specular.png");
+	// brick texture to apply on the walls
 	unsigned int brickTexture = loadTexture("resources/textures/brick.jpg");
+	// tiles texture to apply to the floor
+	unsigned int floorTexture = loadTexture("resources/textures/soil.jpg");
 
 	vector<std::string> faces
 	{
@@ -470,33 +466,59 @@ int main()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, brickTexture);
 
-		// render container : walls
+		// render containers : walls
 		//-------------------------
 		glBindVertexArray(wallVAO);
 
 		// wall 1 (back)
 		// calculate the model matrix for each object and pass it to shader before drawing
-		model = glm::scale(glm::translate(glm::mat4(1.0f), wallPositions[0]), glm::vec3(5.0f, 4.0f, 0.25f));
-		model = glm::translate(model, glm::vec3(0.25f, 0.25f, -10.0f));
+		model = glm::mat4(1.0f);
+		model = glm::scale(model, glm::vec3(5.0f, 4.0f, 0.25f));
+		model = glm::translate(model, glm::vec3(0.0f, 0.25f, -14.0f));
 		lightingShader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		// wall 2 (back)
+		// wall 2 (right)
 		// calculate the model matrix for each object and pass it to shader before drawing
 		model = glm::mat4(1.0f);
 		model = glm::scale(model, glm::vec3(0.25f, 4.0f, 10.0f));
-		model = glm::translate(model, glm::vec3(10.5f, 0.25f, 0.15f));
+		model = glm::translate(model, glm::vec3(10.0f, 0.25f, 0.15f));
 		lightingShader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		// wall 3 (right)
+		// wall 3 (left)
 		// calculate the model matrix for each object and pass it to shader before drawing
-		//model = glm::translate(glm::mat4(1.0f), wallPositions[2]);
-		//lightingShader.setMat4("model", model);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
+		model = glm::mat4(1.0f);
+		model = glm::scale(model, glm::vec3(0.25f, 4.0f, 10.0f));
+		model = glm::translate(model, glm::vec3(-10.0f, 0.25f, 0.15f));
+		lightingShader.setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		// wall 4 (TODO)
+		// wall 4 (front - left)
+		model = glm::mat4(1.0f);
+		model = glm::scale(model, glm::vec3(2.0f, 4.0f, 0.25f));
+		model = glm::translate(model, glm::vec3(-0.75f, 0.25f, 26.0f));
+		lightingShader.setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
+		// wall 5 (front - right)
+		model = glm::mat4(1.0f);
+		model = glm::scale(model, glm::vec3(2.0f, 4.0f, 0.25f));
+		model = glm::translate(model, glm::vec3(0.75f, 0.25f, 26.0f));
+		lightingShader.setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		// bind wall texture
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, floorTexture);
+
+		// floor
+		// calculate the model matrix for each object and pass it to shader before drawing
+		model = glm::mat4(1.0f);
+		model = glm::scale(model, glm::vec3(5.0f, 0.25f, 10.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -3.5f, 0.15f));
+		lightingShader.setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		/// also draw the lamp object(s)
 		//------------------------------
@@ -526,8 +548,11 @@ int main()
 		modelLoadingShader.setMat4("view", view);
 
 		// render the loaded model
-		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));	// it's a bit too big for our scene, so scale it down
+		//model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+		//model = glm::scale(model, glm::vec3(0.25f, 0.25f, 0.25f));	// it's a bit too big for our scene, so scale it down
+		model = glm::mat4(1.0f);
+		model = glm::scale(model, glm::vec3(0.20f, 0.20f, 0.20f));
+		model = glm::translate(model, glm::vec3(0.0f, -4.0f, -10.0f));
 		modelLoadingShader.setMat4("model", model);
 		nanosuit.Draw(modelLoadingShader);
 
