@@ -5,5 +5,5 @@ Debug/
 .vs/
 
 # ignoring MSVC misc files
-*.VS.db
-*.VS.VS.opendb
+*.VC.db
+*.VC.VC.opendb
