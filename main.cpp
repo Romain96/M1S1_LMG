@@ -27,7 +27,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(15.0f, 1.5f, 30.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -43,7 +43,6 @@ glm::vec3 lightPos(-0.5f, 1.0f, 2.0f);
 // only with keyboard for now...
 bool show_wireframe = false;
 bool show_skybox = true;
-bool show_flashlight = true;
 
 int main()
 {
@@ -196,24 +195,38 @@ int main()
 
 	// positions of the point lights
 	glm::vec3 pointLightPositions[] = {
-		glm::vec3(-2.25f, 2.75f,  2.0f),
-		glm::vec3(-2.25f, 2.75f, -1.0f),
-		glm::vec3(2.25f,  2.75f, -1.0f),
-		glm::vec3(2.25f,  2.75f, 2.0f)
+		// inside the "house"
+		//glm::vec3(-2.25f, 2.75f,  2.0f),
+		//glm::vec3(-2.25f, 2.75f, -1.0f),
+		//glm::vec3(2.25f,  2.75f, -1.0f),
+		//glm::vec3(2.25f,  2.75f, 2.0f)
+		// outside the "house" where the camera is set at the beginning
+		glm::vec3(-2.0f, 1.0f, 10.0f),
+		glm::vec3(2.0f,  1.0f, 10.0f),
+		glm::vec3(14.0f, 1.0f, 30.0f),
+		glm::vec3(16.0f, 1.0f, 30.0f)
+	};
+
+	// positions of lampsticks use to hold the lamps
+	glm::vec3 lampstickPositions[] = {
+		glm::vec3(-2.0f, 0.0f, 10.0f),
+		glm::vec3(2.0f,  0.0f, 10.0f),
+		glm::vec3(14.0f, 0.0f, 30.0f),
+		glm::vec3(16.0f, 0.0f, 30.0f)
 	};
 
 	// positions of each boxes
 	glm::vec3 boxPositions[] = {
-		glm::vec3(-1.0f, 0.0f, -2.0f),
-		glm::vec3(-1.0f, 0.0f, -1.0f),
-		glm::vec3(-1.0f, 0.0f,  0.0f),
-		glm::vec3(-1.0f, 0.0f,  1.0f),
-		glm::vec3(-1.0f, 0.0f,  2.0f),
-		glm::vec3(1.0f,  0.0f, -2.0f),
-		glm::vec3(1.0f,  0.0f, -1.0f),
-		glm::vec3(1.0f,  0.0f,  0.0f),
-		glm::vec3(1.0f,  0.0f,  1.0f),
-		glm::vec3(1.0f,  0.0f,  2.0f)
+		glm::vec3(-1.5f, -0.25f, -2.0f),
+		glm::vec3(-1.5f, -0.25f, -1.0f),
+		glm::vec3(-1.5f, -0.25f,  0.0f),
+		glm::vec3(-1.5f,  0.75f, -1.5f),
+		glm::vec3(-1.5f,  0.75f, -0.5f),
+		glm::vec3(1.5f,  -0.25f, -2.0f),
+		glm::vec3(1.5f,  -0.25f, -1.0f),
+		glm::vec3(1.5f,  -0.25f,  0.0f),
+		glm::vec3(1.5f,   0.75f, -1.5f),
+		glm::vec3(1.5f,   0.75f, -0.5f)
 	};
 
 	// box VAO & VBO (with specular & diffuse maps)
@@ -277,6 +290,12 @@ int main()
 	unsigned int brickTexture = loadTexture("resources/textures/brick.jpg");
 	// tiles texture to apply to the floor
 	unsigned int floorTexture = loadTexture("resources/textures/soil.jpg");
+	// tiles textures to apply to the roof
+	unsigned int roofTextures = loadTexture("resources/textures/roof.jpg");
+	// texture for grass/dirt terrain
+	unsigned int terrainTexture = loadTexture("resources/textures/terrain.jpg");
+	// wooden texture used for lampsticks
+	unsigned int lampstickTexture = loadTexture("resources/textures/wood.jpg");
 
 	vector<std::string> faces
 	{
@@ -365,7 +384,7 @@ int main()
 
 		// directional light
 		lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-		lightingShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+		lightingShader.setVec3("dirLight.ambient", 0.00f, 0.00f, 0.00f);
 		lightingShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
 		lightingShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
 		// point light 1
@@ -400,33 +419,17 @@ int main()
 		lightingShader.setFloat("pointLights[3].constant", 1.0f);
 		lightingShader.setFloat("pointLights[3].linear", 0.09);
 		lightingShader.setFloat("pointLights[3].quadratic", 0.032);
-		// spotLight (if not disabled by the user)
-		if (show_flashlight)
-		{
-			lightingShader.setVec3("spotLight.position", camera.Position);
-			lightingShader.setVec3("spotLight.direction", camera.Front);
-			lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-			lightingShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-			lightingShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-			lightingShader.setFloat("spotLight.constant", 1.0f);
-			lightingShader.setFloat("spotLight.linear", 0.09);
-			lightingShader.setFloat("spotLight.quadratic", 0.032);
-			lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-			lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-		}
-		else
-		{
-			lightingShader.setVec3("spotLight.position", camera.Position);
-			lightingShader.setVec3("spotLight.direction", camera.Front);
-			lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-			lightingShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-			lightingShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-			lightingShader.setFloat("spotLight.constant", 1.0f);
-			lightingShader.setFloat("spotLight.linear", 0.09);
-			lightingShader.setFloat("spotLight.quadratic", 0.032);
-			lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-			lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-		}
+		// spotLight
+		lightingShader.setVec3("spotLight.position", camera.Position);
+		lightingShader.setVec3("spotLight.direction", camera.Front);
+		lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+		lightingShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+		lightingShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+		lightingShader.setFloat("spotLight.constant", 1.0f);
+		lightingShader.setFloat("spotLight.linear", 0.09);
+		lightingShader.setFloat("spotLight.quadratic", 0.032);
+		lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+		lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
 		// view/projection transformations
 		projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -439,37 +442,59 @@ int main()
 		// world transformation
 		lightingShader.setMat4("model", glm::mat4());
 
-		// bind diffuse map
+		//--------------------------------------------------------------------------------------------------------
+		// render terrain : 10x10 grassy/dirty texture (10x10 each)
+		//--------------------------------------------------------------------------------------------------------
+		// bind terrain texture
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, diffuseMap);
-		// bind specular map
+		glBindTexture(GL_TEXTURE_2D, terrainTexture);
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, specularMap);
-
-		//--------------------------------------------------------------------------------------------------------
-		// render containers : wooden-metallic boxes
-		//--------------------------------------------------------------------------------------------------------
+		glBindTexture(GL_TEXTURE_2D, terrainTexture);
 		glBindVertexArray(boxVAO);
-		for (unsigned int i = 0; i < 10; i++)
-		{
-			// calculate the model matrix for each object and pass it to shader before drawing
-			glm::mat4 model;
-			model = glm::translate(model, boxPositions[i]);
-			lightingShader.setMat4("model", model);
 
-			glDrawArrays(GL_TRIANGLES, 0, 36);
+#define TERRAIN_SIZE 100
+#define TERRAIN_TEXTURE_SIZE 10
+
+		int terrain_begin_tile =  -((TERRAIN_SIZE / 2) - (TERRAIN_TEXTURE_SIZE / 2));
+		int terrain_end_tile = (TERRAIN_SIZE / 2) - (TERRAIN_TEXTURE_SIZE / 2);
+
+		for (int i = terrain_begin_tile; i <= terrain_end_tile; i+= TERRAIN_TEXTURE_SIZE)
+		{
+			for (int j = terrain_begin_tile; j <= terrain_end_tile; j+= TERRAIN_TEXTURE_SIZE)
+			{
+				model = glm::mat4(1.0f);
+				model = glm::scale(model, glm::vec3(10.f, 0.25f, 10.0f));
+				model = glm::translate(model, glm::vec3(((float)i) / 10.0f, -4.5f, ((float)j) / 10.0f));
+				lightingShader.setMat4("model", model);
+				glDrawArrays(GL_TRIANGLES, 0, 36);
+			}
 		}
 
-		// world transformation
-		lightingShader.setMat4("model", glm::mat4());
-
+		//--------------------------------------------------------------------------------------------------------
+		// render containers : floor
+		//--------------------------------------------------------------------------------------------------------
 		// bind wall texture
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, brickTexture);
+		glBindTexture(GL_TEXTURE_2D, floorTexture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, floorTexture);
+
+		// calculate the model matrix for each object and pass it to shader before drawing
+		model = glm::mat4(1.0f);
+		model = glm::scale(model, glm::vec3(5.0f, 0.25f, 10.0f));
+		model = glm::translate(model, glm::vec3(0.0f, -3.5f, 0.15f));
+		lightingShader.setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		//--------------------------------------------------------------------------------------------------------
 		// render containers : brick walls
 		//--------------------------------------------------------------------------------------------------------
+		// bind wall texture
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, brickTexture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, brickTexture);
+
 		glBindVertexArray(wallVAO);
 
 		// wall 1 (back)
@@ -510,35 +535,47 @@ int main()
 		lightingShader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		// bind wall texture
+		//--------------------------------------------------------------------------------------------------------
+		// rendering the roof
+		//--------------------------------------------------------------------------------------------------------
+		// binding roof texture
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, floorTexture);
+		glBindTexture(GL_TEXTURE_2D, roofTextures);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, roofTextures);
 
-		// floor
 		// calculate the model matrix for each object and pass it to shader before drawing
 		model = glm::mat4(1.0f);
 		model = glm::scale(model, glm::vec3(5.0f, 0.25f, 10.0f));
-		model = glm::translate(model, glm::vec3(0.0f, -3.5f, 0.15f));
+		model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0, 1, 0));
+		model = glm::translate(model, glm::vec3(0.0f, 12.0f, -0.15f));
 		lightingShader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		//--------------------------------------------------------------------------------------------------------
-		// also draw the lamp object(s)
+		// render containers : wooden-metallic boxes
 		//--------------------------------------------------------------------------------------------------------
-		lampShader.use();
-		lampShader.setMat4("projection", projection);
-		lampShader.setMat4("view", view);
+		// bind diffuse map
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, diffuseMap);
+		// bind specular map
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularMap);
 
-		// we now draw as many light bulbs as we have point lights.
-		glBindVertexArray(lightVAO);
-		for (unsigned int i = 0; i < 4; i++)
+		glBindVertexArray(boxVAO);
+
+		for (unsigned int i = 0; i < 10; i++)
 		{
-			model = glm::mat4();
-			model = glm::translate(model, pointLightPositions[i]);
-			model = glm::scale(model, glm::vec3(0.2f)); // Make it a smaller cube
-			lampShader.setMat4("model", model);
+			// calculate the model matrix for each object and pass it to shader before drawing
+			glm::mat4 model;
+			model = glm::translate(model, boxPositions[i]);
+			lightingShader.setMat4("model", model);
+
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
+
+		// world transformation
+		lightingShader.setMat4("model", glm::mat4());
 
 		//--------------------------------------------------------------------------------------------------------
 		// rendering model
@@ -557,6 +594,51 @@ int main()
 		model = glm::translate(model, glm::vec3(0.0f, -4.0f, -10.0f));
 		modelLoadingShader.setMat4("model", model);
 		nanosuit.Draw(modelLoadingShader);
+
+		//--------------------------------------------------------------------------------------------------------
+		// render containers : lampsticks
+		//--------------------------------------------------------------------------------------------------------
+		lightingShader.use();
+		// bind diffuse map
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, lampstickTexture);
+		// bind specular map
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, lampstickTexture);
+
+		glBindVertexArray(boxVAO);
+
+		for (unsigned int i = 0; i < 4; i++)
+		{
+			// calculate the model matrix for each object and pass it to shader before drawing
+			glm::mat4 model;
+			model = glm::translate(model, lampstickPositions[i]);
+			model = glm::scale(model, glm::vec3(0.25f, 2.0f, 0.25f));
+			lightingShader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+
+		// world transformation
+		lightingShader.setMat4("model", glm::mat4());
+
+		//--------------------------------------------------------------------------------------------------------
+		// also draw the lamp object(s)
+		//--------------------------------------------------------------------------------------------------------
+		lampShader.use();
+		lampShader.setMat4("projection", projection);
+		lampShader.setMat4("view", view);
+
+		// we now draw as many light bulbs as we have point lights.
+		glBindVertexArray(lightVAO);
+		for (unsigned int i = 0; i < 4; i++)
+		{
+			model = glm::mat4();
+			model = glm::translate(model, pointLightPositions[i]);
+			model = glm::scale(model, glm::vec3(0.2f)); // Make it a smaller cube
+			model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0f));
+			lampShader.setMat4("model", model);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 		//--------------------------------------------------------------------------------------------------------
 		// draw skybox as last
@@ -620,9 +702,6 @@ void processInput(GLFWwindow *window)
 	// key 'S' toogles the skybox
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		show_skybox = !show_skybox;
-	// key 'F' toogles the flashlight (which illuminates a circular area int the direction the cursor is pointing towards)
-	if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-		show_flashlight = !show_flashlight;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
